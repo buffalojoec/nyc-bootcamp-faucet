@@ -7,7 +7,7 @@ pub mod state;
 use anchor_lang::prelude::*;
 use instructions::*;
 
-declare_id!("7832S4UAeNDGrqMSiZqhL5mqo9Xh1ytHKfcPe6AJapSi");
+declare_id!("6yMWpBc4YFXCyuN3dEmcjPYBcYfx12oPE7rzGvbxYX96");
 
 #[program]
 pub mod pirate_faucet {

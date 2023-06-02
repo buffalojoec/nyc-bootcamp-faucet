@@ -6,54 +6,54 @@ import {
     getMultipleAccounts as getMultipleTokenAccounts,
 } from '@solana/spl-token'
 import { Connection, PublicKey } from '@solana/web3.js'
-import { SwapProgram } from '../../target/types/swap_program'
+import { PirateFaucet } from '../../target/types/pirate_faucet'
 import { fromBigIntQuantity } from './token'
 
 /**
  *
- * Fetches the Liquidity Pool account and parses its data
+ * Fetches the Liquidity Faucet account and parses its data
  *
  * @param program The swap program as an `anchor.Program<SwapProgram>`
- * @param poolAddress The address of the Liquidity Pool program-derived address account
- * @returns The parsed Liquidity Pool account
+ * @param faucetAddress The address of the Liquidity Faucet program-derived address account
+ * @returns The parsed Liquidity Faucet account
  */
-export async function fetchPool(
+export async function fetchFaucet(
     program: anchor.Program<SwapProgram>,
-    poolAddress: PublicKey
-): Promise<anchor.IdlTypes<anchor.Idl>['LiquidityPool']> {
-    return program.account.liquidityPool.fetch(
-        poolAddress
-    ) as anchor.IdlTypes<anchor.Idl>['LiquidityPool']
+    faucetAddress: PublicKey
+): Promise<anchor.IdlTypes<anchor.Idl>['LiquidityFaucet']> {
+    return program.account.faucet.fetch(
+        faucetAddress
+    ) as anchor.IdlTypes<anchor.Idl>['LiquidityFaucet']
 }
 
 /**
  *
- * Fetches all owned token accounts from the Liquidity Pool's stored
+ * Fetches all owned token accounts from the Liquidity Faucet's stored
  * list of mint addresses
  *
  * @param connection Connection to Solana RPC
- * @param poolAddress The address of the Liquidity Pool program-derived address account
- * @param pool The Liquidity Pool account itself
- * @returns List of token accounts owned by the Liquidity Pool
+ * @param faucetAddress The address of the Liquidity Faucet program-derived address account
+ * @param faucet The Liquidity Faucet account itself
+ * @returns List of token accounts owned by the Liquidity Faucet
  */
-export async function fetchPoolTokenAccounts(
+export async function fetchFaucetTokenAccounts(
     connection: Connection,
-    poolAddress: PublicKey,
-    pool: anchor.IdlTypes<anchor.Idl>['LiquidityPool']
+    faucetAddress: PublicKey,
+    faucet: anchor.IdlTypes<anchor.Idl>['LiquidityFaucet']
 ): Promise<TokenAccount[]> {
-    const tokenAddresses = pool.assets.map((m) =>
-        getAssociatedTokenAddressSync(m, poolAddress, true)
+    const tokenAddresses = faucet.assets.map((m) =>
+        getAssociatedTokenAddressSync(m, faucetAddress, true)
     )
     return getMultipleTokenAccounts(connection, tokenAddresses)
 }
 
 /**
  *
- * Fetches the token account balances for the user and the pool for pay & receive assets
+ * Fetches the token account balances for the user and the faucet for pay & receive assets
  *
  * @param connection Connection to Solana RPC
  * @param owner The user commencing the swap
- * @param pool The address of the Liquidity Pool program-derived address account
+ * @param faucet The address of the Liquidity Faucet program-derived address account
  * @param receiveAddress The mint address of the asset they are requesting to receive
  * @param receiveDecimals The mint's decimals for the asset they are requesting to receive
  * @param payAddress The mint address of the asset they are offering to pay
@@ -63,7 +63,7 @@ export async function fetchPoolTokenAccounts(
 export async function calculateBalances(
     connection: Connection,
     owner: PublicKey,
-    pool: PublicKey,
+    faucet: PublicKey,
     receiveAddress: PublicKey,
     receiveDecimals: number,
     payAddress: PublicKey,
@@ -85,27 +85,27 @@ export async function calculateBalances(
         payUserTokenAccount.amount,
         payDecimals
     )
-    const receivePoolTokenAccount = await getTokenAccount(
+    const receiveFaucetTokenAccount = await getTokenAccount(
         connection,
-        getAssociatedTokenAddressSync(receiveAddress, pool, true)
+        getAssociatedTokenAddressSync(receiveAddress, faucet, true)
     )
-    const receivePoolBalance = fromBigIntQuantity(
-        receivePoolTokenAccount.amount,
+    const receiveFaucetBalance = fromBigIntQuantity(
+        receiveFaucetTokenAccount.amount,
         receiveDecimals
     )
-    const payPoolTokenAccount = await getTokenAccount(
+    const payFaucetTokenAccount = await getTokenAccount(
         connection,
-        getAssociatedTokenAddressSync(payAddress, pool, true)
+        getAssociatedTokenAddressSync(payAddress, faucet, true)
     )
-    const payPoolBalance = fromBigIntQuantity(
-        payPoolTokenAccount.amount,
+    const payFaucetBalance = fromBigIntQuantity(
+        payFaucetTokenAccount.amount,
         payDecimals
     )
     return [
         receiveUserBalance,
-        receivePoolBalance,
+        receiveFaucetBalance,
         payUserBalance,
-        payPoolBalance,
+        payFaucetBalance,
     ]
 }
 

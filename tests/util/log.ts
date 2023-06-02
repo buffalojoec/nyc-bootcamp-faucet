@@ -6,7 +6,7 @@ import {
 } from '@solana/spl-token'
 import { Connection, PublicKey } from '@solana/web3.js'
 import { fromBigIntQuantity } from './token'
-import { calculateBalances } from './swap'
+import { calculateBalances } from './faucet'
 
 /**
  * Log a line break
@@ -46,7 +46,7 @@ export function logNewMint(
 export async function logPreSwap(
     connection: Connection,
     owner: PublicKey,
-    pool: PublicKey,
+    faucet: PublicKey,
     receive: {
         name: string
         quantity: number
@@ -63,13 +63,13 @@ export async function logPreSwap(
 ) {
     const [
         receiveUserBalance,
-        receivePoolBalance,
+        receiveFaucetBalance,
         payUserBalance,
-        payPoolBalance,
+        payFaucetBalance,
     ] = await calculateBalances(
         connection,
         owner,
-        pool,
+        faucet,
         receive.address,
         receive.decimals,
         pay.address,
@@ -87,19 +87,19 @@ export async function logPreSwap(
     console.log(`       OFFERING TO PAY: ${amount}`)
     console.log()
     console.log('   |====================|==============|==============|')
-    console.log('   | Asset:             | User:        | Pool:        |')
+    console.log('   | Asset:             | User:        | Faucet:        |')
     console.log('   |====================|==============|==============|')
     console.log(
         `   | ${pay.name.padEnd(18, ' ')} | ${payUserBalance.padStart(
             12,
             ' '
-        )} | ${payPoolBalance.padStart(12, ' ')} |`
+        )} | ${payFaucetBalance.padStart(12, ' ')} |`
     )
     console.log(
         `   | ${receive.name.padEnd(18, ' ')} | ${receiveUserBalance.padStart(
             12,
             ' '
-        )} | ${receivePoolBalance.padStart(12, ' ')} |`
+        )} | ${receiveFaucetBalance.padStart(12, ' ')} |`
     )
     console.log('   |====================|==============|==============|')
     console.log()
@@ -108,7 +108,7 @@ export async function logPreSwap(
 export async function logPostSwap(
     connection: Connection,
     owner: PublicKey,
-    pool: PublicKey,
+    faucet: PublicKey,
     receive: {
         name: string
         quantity: number
@@ -124,13 +124,13 @@ export async function logPostSwap(
 ) {
     const [
         receiveUserBalance,
-        receivePoolBalance,
+        receiveFaucetBalance,
         payUserBalance,
-        payPoolBalance,
+        payFaucetBalance,
     ] = await calculateBalances(
         connection,
         owner,
-        pool,
+        faucet,
         receive.address,
         receive.decimals,
         pay.address,
@@ -139,19 +139,19 @@ export async function logPostSwap(
     console.log('   POST-SWAP:')
     console.log()
     console.log('   |====================|==============|==============|')
-    console.log('   | Asset:             | User:        | Pool:        |')
+    console.log('   | Asset:             | User:        | Faucet:        |')
     console.log('   |====================|==============|==============|')
     console.log(
         `   | ${pay.name.padEnd(18, ' ')} | ${payUserBalance.padStart(
             12,
             ' '
-        )} | ${payPoolBalance.padStart(12, ' ')} |`
+        )} | ${payFaucetBalance.padStart(12, ' ')} |`
     )
     console.log(
         `   | ${receive.name.padEnd(18, ' ')} | ${receiveUserBalance.padStart(
             12,
             ' '
-        )} | ${receivePoolBalance.padStart(12, ' ')} |`
+        )} | ${receiveFaucetBalance.padStart(12, ' ')} |`
     )
     console.log('   |====================|==============|==============|')
     console.log()
@@ -160,17 +160,17 @@ export async function logPostSwap(
 
 /**
  *
- * Logs the Liquidity Pool's holdings (assets held in each token account)
+ * Logs the Liquidity Faucet's holdings (assets held in each token account)
  *
  * @param connection Connection to Solana RPC
- * @param poolAddress Address of the Liquidity Pool
- * @param tokenAccounts All token accounts owned by the Liquidity Pool
+ * @param faucetAddress Address of the Liquidity Faucet
+ * @param tokenAccounts All token accounts owned by the Liquidity Faucet
  * @param assets The assets from the configuration file
  * @param k The constant-product `K` (Constant-Product Algorithm)
  */
-export async function logPool(
+export async function logFaucet(
     connection: Connection,
-    poolAddress: PublicKey,
+    faucetAddress: PublicKey,
     tokenAccounts: TokenAccount[],
     assets: {
         name: string
@@ -191,8 +191,8 @@ export async function logPool(
     }
     const padding = assets.reduce((max, a) => Math.max(max, a.name.length), 0)
     lineBreak()
-    console.log('   Liquidity Pool:')
-    console.log(`       Address:    ${poolAddress.toBase58()}`)
+    console.log('   Liquidity Faucet:')
+    console.log(`       Address:    ${faucetAddress.toBase58()}`)
     console.log('       Holdings:')
     for (const a of assets) {
         const holding = getHoldings(a.address, tokenAccounts)

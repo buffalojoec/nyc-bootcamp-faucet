@@ -1,27 +1,27 @@
 import * as anchor from '@coral-xyz/anchor'
 import { Keypair, PublicKey } from '@solana/web3.js'
 import { getAssociatedTokenAddressSync } from '@solana/spl-token'
-import { SwapProgram } from '../../target/types/swap_program'
+import { PirateFaucet } from '../../target/types/pirate_faucet'
 import { toBigIntQuantity } from '../util/token'
 
 /**
  *
  * Sends a transaction containing the instruction for the swap program's
- * `create_pool` instruction
+ * `create_faucet` instruction
  *
  * @param program The swap program as an `anchor.Program<SwapProgram>`
  * @param payer The Liquidity Provider (local wallet in `Anchor.toml`)
- * @param poolAddress The address of the Liquidity Pool program-derived address account
+ * @param faucetAddress The address of the Liquidity Faucet program-derived address account
  */
-export async function createPool(
-    program: anchor.Program<SwapProgram>,
+export async function createFaucet(
+    program: anchor.Program<PirateFaucet>,
     payer: Keypair,
-    poolAddress: PublicKey
+    faucetAddress: PublicKey
 ) {
     await program.methods
-        .createPool()
+        .initialize()
         .accounts({
-            pool: poolAddress,
+            faucet: faucetAddress,
             payer: payer.publicKey,
             systemProgram: anchor.web3.SystemProgram.programId,
         })
@@ -32,31 +32,33 @@ export async function createPool(
 /**
  *
  * Sends a transaction containing the instruction for the swap program's
- * `fund_pool` instruction
+ * `fund_faucet` instruction
  *
  * @param program The swap program as an `anchor.Program<SwapProgram>`
  * @param payer The Liquidity Provider (local wallet in `Anchor.toml`)
- * @param pool The address of the Liquidity Pool program-derived address account
- * @param mint The address of the mint being funded to the Liquidity Pool
+ * @param faucet The address of the Liquidity Faucet program-derived address account
+ * @param mint The address of the mint being funded to the Liquidity Faucet
  * @param quantity The quantity to fund of the provided mint
  * @param decimals the decimals of this mint (used to calculate real quantity)
  */
-export async function fundPool(
-    program: anchor.Program<SwapProgram>,
+export async function fundFaucet(
+    program: anchor.Program<PirateFaucet>,
     payer: Keypair,
-    pool: PublicKey,
+    faucet: PublicKey,
     mint: PublicKey,
     quantity: number,
     decimals: number
 ) {
     await program.methods
-        .fundPool(
-            new anchor.BN(toBigIntQuantity(quantity, decimals).toString())
-        )
+        .fund(new anchor.BN(toBigIntQuantity(quantity, decimals).toString()))
         .accounts({
-            pool,
+            faucet,
             mint,
-            poolTokenAccount: getAssociatedTokenAddressSync(mint, pool, true),
+            faucetTokenAccount: getAssociatedTokenAddressSync(
+                mint,
+                faucet,
+                true
+            ),
             payerTokenAccount: getAssociatedTokenAddressSync(
                 mint,
                 payer.publicKey
@@ -77,43 +79,34 @@ export async function fundPool(
  *
  * @param program The swap program as an `anchor.Program<SwapProgram>`
  * @param payer The Liquidity Provider (local wallet in `Anchor.toml`)
- * @param pool The address of the Liquidity Pool program-derived address account
+ * @param faucet The address of the Liquidity Faucet program-derived address account
  * @param receiveMint The address of the mint the user is requesting to receive in exchange
  * @param payMint The address of the mint the user is offering to pay in the swap
  * @param quantity The quantity of the mint the user is offering to pay
  * @param decimals The decimals of the mint the user is offering to pay (used to calculate real quantity)
  */
-export async function swap(
-    program: anchor.Program<SwapProgram>,
+export async function requestAirdrop(
+    program: anchor.Program<PirateFaucet>,
     payer: Keypair,
-    pool: PublicKey,
-    receiveMint: PublicKey,
-    payMint: PublicKey,
+    faucet: PublicKey,
+    mint: PublicKey,
     quantity: number,
     decimals: number
 ) {
     await program.methods
-        .swap(new anchor.BN(toBigIntQuantity(quantity, decimals).toString()))
+        .requestAirdrop(
+            new anchor.BN(toBigIntQuantity(quantity, decimals).toString())
+        )
         .accounts({
-            pool,
-            receiveMint,
-            poolReceiveTokenAccount: getAssociatedTokenAddressSync(
-                receiveMint,
-                pool,
+            faucet,
+            mint,
+            faucetTokenAccount: getAssociatedTokenAddressSync(
+                mint,
+                faucet,
                 true
             ),
-            payerReceiveTokenAccount: getAssociatedTokenAddressSync(
-                receiveMint,
-                payer.publicKey
-            ),
-            payMint,
-            poolPayTokenAccount: getAssociatedTokenAddressSync(
-                payMint,
-                pool,
-                true
-            ),
-            payerPayTokenAccount: getAssociatedTokenAddressSync(
-                payMint,
+            payerTokenAccount: getAssociatedTokenAddressSync(
+                mint,
                 payer.publicKey
             ),
             payer: payer.publicKey,

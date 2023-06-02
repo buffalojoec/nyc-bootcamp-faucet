@@ -3,7 +3,7 @@ seeds = true
 skip-lint = false
 
 [programs.devnet]
-swap_program = "7832S4UAeNDGrqMSiZqhL5mqo9Xh1ytHKfcPe6AJapSi"
+pirate_faucet = "6yMWpBc4YFXCyuN3dEmcjPYBcYfx12oPE7rzGvbxYX96"
 
 [registry]
 url = "https://api.apr.dev"
@@ -15,5 +15,4 @@ wallet = "/Users/joesol/.config/solana/id.json"
 [scripts]
 upload-json = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/upload-json.test.ts"
 create-assets = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/create-assets.test.ts"
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/main.test.ts"
 master = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/master.test.ts"

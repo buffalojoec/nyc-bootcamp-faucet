@@ -1,14 +1,18 @@
 import * as anchor from '@coral-xyz/anchor'
 import { PublicKey } from '@solana/web3.js'
-import { SwapProgram } from '../target/types/swap_program'
+import { PirateFaucet } from '../target/types/pirate_faucet'
 import assetsConfig from './util/assets.json'
-import { createPool, fundPool, swap } from './instructions'
-import { calculateK, fetchPool, fetchPoolTokenAccounts } from './util/swap'
-import { logPool } from './util/log'
+import { createFaucet, fundFaucet, requestAirdrop } from './instructions'
+import {
+    calculateK,
+    fetchFaucet,
+    fetchFaucetTokenAccounts,
+} from './util/faucet'
+import { logFaucet } from './util/log'
 import { mintExistingTokens } from './util/token'
 
-// Seed prefix for the Liquidity Pool from our program
-const LIQUIDITY_POOL_SEED_PREFIX = 'liquidity_pool'
+// Seed prefix for the Faucet from our program
+const FAUCET_SEED_PREFIX = 'faucet'
 
 // Util function to sleep
 const sleepSeconds = async (s: number) =>
@@ -22,14 +26,15 @@ function getRandomInt(max: number): number {
 /**
  * Our main unit tests module
  */
-describe('[Running Unit Tests]: Swap Program', async () => {
+describe('[Running Unit Tests]: Pirate Faucet', async () => {
     // Configurations
     const provider = anchor.AnchorProvider.env()
     anchor.setProvider(provider)
-    const program = anchor.workspace.SwapProgram as anchor.Program<SwapProgram>
+    const program = anchor.workspace
+        .PirateFaucet as anchor.Program<PirateFaucet>
     const payer = (provider.wallet as anchor.Wallet).payer
-    const poolAddress = PublicKey.findProgramAddressSync(
-        [Buffer.from(LIQUIDITY_POOL_SEED_PREFIX)],
+    const faucetAddress = PublicKey.findProgramAddressSync(
+        [Buffer.from(FAUCET_SEED_PREFIX)],
         program.programId
     )[0]
     // If you're reading this, you'll probably notice that we're manually
@@ -115,37 +120,37 @@ describe('[Running Unit Tests]: Swap Program', async () => {
             }
         })
 
-    // Used as a flag to only initialize the Liquidity Pool once
+    // Used as a flag to only initialize the Faucet once
     let programInitialized = false
 
     /**
-     * Check if the Liquidity Pool exists and set the flag
+     * Check if the Faucet exists and set the flag
      */
-    before('          Check if Pool exists', async () => {
-        let poolAccountInfo = await provider.connection.getAccountInfo(
-            poolAddress
+    before('          Check if Faucet exists', async () => {
+        let faucetAccountInfo = await provider.connection.getAccountInfo(
+            faucetAddress
         )
-        if (poolAccountInfo != undefined && poolAccountInfo.lamports != 0) {
-            console.log('   Pool already initialized!')
-            console.log(`     Address: ${poolAddress.toBase58()}`)
+        if (faucetAccountInfo != undefined && faucetAccountInfo.lamports != 0) {
+            console.log('   Faucet already initialized!')
+            console.log(`     Address: ${faucetAddress.toBase58()}`)
             programInitialized = true
         }
     })
 
     /**
-     * Initialize the Liquidity Pool if it doesn't exist already
+     * Initialize the Faucet if it doesn't exist already
      */
-    it('          Create Pool', async () => {
+    it('          Create Faucet', async () => {
         if (!programInitialized) {
-            await createPool(program, payer, poolAddress)
+            await createFaucet(program, payer, faucetAddress)
         }
     })
 
     /**
-     * Fund the Liquidity Pool
+     * Fund the Faucet
      */
     for (const asset of assets) {
-        it(`          Fund Pool with: ${asset.name}`, async () => {
+        it(`          Fund Faucet with: ${asset.name}`, async () => {
             if (asset.mintNew) {
                 await mintExistingTokens(
                     provider.connection,
@@ -157,10 +162,10 @@ describe('[Running Unit Tests]: Swap Program', async () => {
             } else {
                 console.log(`Minting overridden for ${asset.name}`)
             }
-            await fundPool(
+            await fundFaucet(
                 program,
                 payer,
-                poolAddress,
+                faucetAddress,
                 asset.address,
                 asset.quantity,
                 asset.decimals
@@ -170,24 +175,24 @@ describe('[Running Unit Tests]: Swap Program', async () => {
 
     /**
      *
-     * Calculates the Liquidity Pool's holdings (assets held in each token account)
+     * Calculates the Faucet's holdings (assets held in each token account)
      *
      * @param log A flag provided telling this function whether or not to print to logs
      * @returns The constant-product `K` (Constant-Product Algorithm)
      */
-    async function getPoolData(log: boolean): Promise<bigint> {
-        const pool = await fetchPool(program, poolAddress)
-        const poolTokenAccounts = await fetchPoolTokenAccounts(
+    async function getFaucetData(log: boolean): Promise<bigint> {
+        const faucet = await fetchFaucet(program, faucetAddress)
+        const faucetTokenAccounts = await fetchFaucetTokenAccounts(
             provider.connection,
-            poolAddress,
-            pool
+            faucetAddress,
+            faucet
         )
-        const k = calculateK(poolTokenAccounts)
+        const k = calculateK(faucetTokenAccounts)
         if (log) {
-            await logPool(
+            await logFaucet(
                 provider.connection,
-                poolAddress,
-                poolTokenAccounts,
+                faucetAddress,
+                faucetTokenAccounts,
                 assets,
                 k
             )
@@ -196,7 +201,7 @@ describe('[Running Unit Tests]: Swap Program', async () => {
     }
 
     /**
-     * Prints the Liquidity Pool's holdings (assets held in each token account)
+     * Prints the Faucet's holdings (assets held in each token account)
      */
-    it('          Get Liquidity Pool Data', async () => await getPoolData(true))
+    it('          Get Faucet Data', async () => await getFaucetData(true))
 })
