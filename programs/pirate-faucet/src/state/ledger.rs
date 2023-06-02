@@ -1,5 +1,6 @@
 //! Swap program account state
 use anchor_lang::prelude::*;
+use anchor_spl::token::Mint;
 
 use crate::error::FaucetError;
 
@@ -13,7 +14,7 @@ pub struct Ledger {
 
 impl Ledger {
     /// Max airdrops for any asset
-    pub const MAX_AIRDROP_AMOUNT: u64 = 100_000_000_000;
+    pub const MAX_AIRDROP_AMOUNT: u64 = 40;
 
     /// The Ledger's seed prefix
     pub const SEED_PREFIX: &'static str = "ledger";
@@ -23,12 +24,20 @@ impl Ledger {
 }
 
 pub trait LedgerAccount<'info> {
-    fn determine_airdrop_eligible(&mut self, amount: u64) -> Result<()>;
+    fn determine_airdrop_eligible(
+        &mut self,
+        mint: &Account<'info, Mint>,
+        amount: u64,
+    ) -> Result<()>;
 }
 
 impl<'info> LedgerAccount<'info> for Account<'info, Ledger> {
-    fn determine_airdrop_eligible(&mut self, amount: u64) -> Result<()> {
-        if self.amount_received + amount > Ledger::MAX_AIRDROP_AMOUNT {
+    fn determine_airdrop_eligible(
+        &mut self,
+        mint: &Account<'info, Mint>,
+        amount: u64,
+    ) -> Result<()> {
+        if self.amount_received + amount > Ledger::MAX_AIRDROP_AMOUNT * mint.decimals as u64 {
             return Err(FaucetError::MaxAmountExceeded.into());
         } else {
             self.amount_received += amount;

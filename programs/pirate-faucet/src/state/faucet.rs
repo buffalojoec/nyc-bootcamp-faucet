@@ -191,7 +191,7 @@ impl<'info> FaucetAccount<'info> for Account<'info, Faucet> {
         let (mint, faucet_token_account, payer_token_account, amount) = receive;
         self.check_asset_key(&mint.key())?;
         // Determine if this person has received this token from the faucet before
-        ledger.determine_airdrop_eligible(amount)?;
+        ledger.determine_airdrop_eligible(mint, amount)?;
         // Process the airdrop
         process_transfer_from_faucet(
             faucet_token_account,
