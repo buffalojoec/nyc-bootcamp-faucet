@@ -95,7 +95,8 @@ export async function requestAirdrop(
 ) {
     await program.methods
         .requestAirdrop(
-            new anchor.BN(toBigIntQuantity(quantity, decimals).toString())
+            // new anchor.BN(toBigIntQuantity(quantity, decimals).toString())
+            new anchor.BN(quantity)
         )
         .accounts({
             faucet,

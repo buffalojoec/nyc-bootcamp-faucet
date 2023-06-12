@@ -20,7 +20,7 @@ impl Ledger {
     pub const SEED_PREFIX: &'static str = "ledger";
 
     /// Anchor discriminator + u64
-    pub const SPACE: usize = 8 + 4;
+    pub const SPACE: usize = 8 + 8;
 }
 
 pub trait LedgerAccount<'info> {

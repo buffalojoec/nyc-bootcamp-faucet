@@ -52,7 +52,7 @@ pub struct RequestAirdrop<'info> {
     pub payer_token_account: Box<Account<'info, token::TokenAccount>>,
     #[account(
         init_if_needed,
-        space = Faucet::SPACE,
+        space = Ledger::SPACE,
         payer = payer,
         seeds = [Ledger::SEED_PREFIX.as_bytes(), payer.key().as_ref(), mint.key().as_ref()],
         bump,

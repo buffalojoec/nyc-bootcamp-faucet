@@ -14,15 +14,6 @@ import { mintExistingTokens } from './util/token'
 // Seed prefix for the Faucet from our program
 const FAUCET_SEED_PREFIX = 'faucet'
 
-// Util function to sleep
-const sleepSeconds = async (s: number) =>
-    await new Promise((f) => setTimeout(f, s * 1000))
-
-// Util function for random number below max
-function getRandomInt(max: number): number {
-    return Math.floor(Math.random() * max)
-}
-
 /**
  * Our main unit tests module
  */
@@ -48,7 +39,7 @@ describe('[Running Unit Tests]: Pirate Faucet', async () => {
         Rum,
         OnlyBootcamp,
     }
-    const activeFilter = []
+    const activeFilter = [] // Adjust this filter to control how to fund the faucet
     const assets = assetsConfig.assets
         .filter((o) => {
             if (activeFilter.includes(AssetFilter.Gold) && o.name == 'Gold') {
@@ -85,7 +76,7 @@ describe('[Running Unit Tests]: Pirate Faucet', async () => {
                     quantity: o.quantity,
                     decimals: 9,
                     address: new PublicKey(
-                        'goLdQwNaZToyavwkbuPJzTt5XPNR3H7WQBGenWtzPH3'
+                        'goLdQwNaZToyavwkbuPJzTt5XPNR3H7WQBGenWtzPH3' // Place your own Gold token address here
                     ),
                     mintNew: false,
                 }
@@ -95,7 +86,7 @@ describe('[Running Unit Tests]: Pirate Faucet', async () => {
                     quantity: o.quantity,
                     decimals: 9,
                     address: new PublicKey(
-                        'boomkN8rQpbgGAKcWvR3yyVVkjucNYcq7gTav78NQAG'
+                        'boomkN8rQpbgGAKcWvR3yyVVkjucNYcq7gTav78NQAG' // Place your own Cannon token address here
                     ),
                     mintNew: false,
                 }
@@ -105,7 +96,7 @@ describe('[Running Unit Tests]: Pirate Faucet', async () => {
                     quantity: o.quantity,
                     decimals: 9,
                     address: new PublicKey(
-                        'rumwqxXmjKAmSdkfkc5qDpHTpETYJRyXY22DWYUmWDt'
+                        'rumwqxXmjKAmSdkfkc5qDpHTpETYJRyXY22DWYUmWDt' // Place your own Rum token address here
                     ),
                     mintNew: false,
                 }
@@ -204,4 +195,12 @@ describe('[Running Unit Tests]: Pirate Faucet', async () => {
      * Prints the Faucet's holdings (assets held in each token account)
      */
     it('          Get Faucet Data', async () => await getFaucetData(true))
+
+    it('          Request Airdrop', async () => {
+        // const mintRequest = new PublicKey(
+        //     'rumwqxXmjKAmSdkfkc5qDpHTpETYJRyXY22DWYUmWDt' // Place your own asset token address here
+        // )
+        const mintRequest = assets[0].address
+        await requestAirdrop(program, payer, faucetAddress, mintRequest, 30, 9)
+    })
 })
